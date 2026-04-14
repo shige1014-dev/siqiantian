@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>零零 · 每日信号台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-bright: #F0CC6E;
+    --gold-dim: #7A6030;
+    --gold-glow: rgba(201,168,76,0.15);
+    --bg: #0A0804;
+    --bg2: #0F0C06;
+    --bg3: #141008;
+    --surface: #1A1508;
+    --border: rgba(201,168,76,0.2);
+    --text: #E8DFC0;
+    --text-dim: #8A7D5A;
+    --red: #C44;
+    --green: #4A9;
+    --trump: #C8622A;
+    --trump-dim: rgba(200,98,42,0.15);
+    --trump-border: rgba(200,98,42,0.35);
+    --fj-blue: #4A8CC9;
+    --fj-glow: rgba(74,140,201,0.12);
+    --fj-border: rgba(74,140,201,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 100% 50%, rgba(201,168,76,0.03) 0%, transparent 60%),
+      radial-gradient(ellipse 30% 40% at 0% 80%, rgba(200,98,42,0.03) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+  /* ── Header ── */
+  header {
+    padding: 36px 0 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-end; justify-content: space-between;
+  }
+  .logo { display: flex; flex-direction: column; gap: 4px; }
+  .logo-main {
+    font-family: 'Cinzel', serif; font-size: 26px; font-weight: 700;
+    color: var(--gold); letter-spacing: 0.15em;
+    text-shadow: 0 0 30px rgba(201,168,76,0.4);
+  }
+  .logo-sub { font-family: 'Crimson Pro', serif; font-size: 12px; font-weight: 300; color: var(--text-dim); letter-spacing: 0.3em; font-style: italic; }
+  .header-right { display: flex; align-items: center; gap: 24px; }
+  .header-date { font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em; font-style: italic; }
+  .fj-badge {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.2em;
+    padding: 4px 10px; border: 1px solid var(--fj-border); color: var(--fj-blue);
+    background: var(--fj-glow);
+  }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex; gap: 10px; padding: 22px 0; align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 20px; background: transparent;
+    border: 1px solid var(--gold-dim); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.12em;
+    cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .btn::before {
+    content: ''; position: absolute; inset: 0; background: var(--gold-glow);
+    transform: scaleX(0); transform-origin: left; transition: transform 0.3s;
+  }
+  .btn:hover { border-color: var(--gold); }
+  .btn:hover::before { transform: scaleX(1); }
+  .btn:active { transform: scale(0.98); }
+  .btn.primary { background: var(--gold-glow); border-color: var(--gold); }
+  .btn.fj-btn { border-color: var(--fj-border); color: var(--fj-blue); }
+  .btn.fj-btn::before { background: var(--fj-glow); }
+  .btn.fj-btn:hover { border-color: var(--fj-blue); }
+  .btn svg { width: 13px; height: 13px; fill: currentColor; flex-shrink: 0; }
+  .status-bar { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+  .dot.active { background: var(--gold); animation: pulse 1.5s infinite; }
+  .dot.fj-active { background: var(--fj-blue); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin: 0; padding: 20px 0 0;
+  }
+  .tab {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em;
+    padding: 8px 20px; cursor: pointer; color: var(--text-dim);
+    border-bottom: 2px solid transparent; transition: all 0.25s;
+    text-transform: uppercase;
+  }
+  .tab:hover { color: var(--gold); }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab.trump-tab.active { color: var(--trump); border-bottom-color: var(--trump); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Main layout ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    padding: 24px 0;
+    min-height: 600px;
+  }
+
+  /* ── News panel (left) ── */
+  .news-panel { display: flex; flex-direction: column; gap: 14px; }
+  .panel-title {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.25em;
+    color: var(--text-dim); text-transform: uppercase;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .category-section {
+    display: flex; flex-direction: column; gap: 0;
+    opacity: 0; transform: translateY(8px);
+    animation: fadeUp 0.4s forwards;
+  }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+  .category-header {
+    display: flex; align-items: center; gap: 10px; padding: 10px 0 8px;
+  }
+  .category-name { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em; color: var(--gold); }
+  .category-track { font-size: 11px; color: var(--text-dim); font-style: italic; }
+  .category-line { flex: 1; height: 1px; background: var(--border); }
+
+  .news-table { width: 100%; border-collapse: collapse; }
+  .news-table th {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.15em;
+    color: var(--text-dim); text-align: left; padding: 5px 10px;
+    border-bottom: 1px solid rgba(201,168,76,0.1); font-weight: 400;
+  }
+  .news-table td {
+    padding: 9px 10px; font-size: 14px; vertical-align: top;
+    border-bottom: 1px solid rgba(201,168,76,0.05); line-height: 1.5;
+  }
+  .news-table tr:hover td { background: var(--gold-glow); }
+  .news-title { color: var(--text); max-width: 460px; }
+  .news-title a { color: inherit; text-decoration: none; }
+  .news-title a:hover { color: var(--gold-bright); }
+  .stock-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+  .stock-tag {
+    font-family: 'Cinzel', serif; font-size: 9px; padding: 2px 6px;
+    border: 1px solid var(--gold-dim); color: var(--gold); letter-spacing: 0.1em; white-space: nowrap;
+  }
+  .stock-tag.none { color: var(--text-dim); border-color: transparent; }
+  .source-label { font-size: 11px; color: var(--text-dim); font-style: italic; white-space: nowrap; }
+
+  /* ── FinancialJuice Panel ── */
+  .fj-panel { display: flex; flex-direction: column; gap: 0; }
+  .fj-item {
+    padding: 10px 0; border-bottom: 1px solid rgba(74,140,201,0.08);
+    display: flex; align-items: flex-start; gap: 10px;
+    opacity: 0; animation: fadeUp 0.3s forwards;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .fj-item:hover { background: var(--fj-glow); margin: 0 -8px; padding: 10px 8px; }
+  .fj-score {
+    font-family: 'Cinzel', serif; font-size: 10px; min-width: 28px; text-align: center;
+    padding: 2px 0; flex-shrink: 0; margin-top: 2px;
+  }
+  .fj-score.critical { color: #C44; }
+  .fj-score.major { color: var(--gold); }
+  .fj-score.normal { color: var(--text-dim); }
+  .fj-content { flex: 1; }
+  .fj-title { font-size: 13px; line-height: 1.45; color: var(--text); }
+  .fj-meta { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 3px; display: flex; gap: 10px; }
+  .fj-trump-tag {
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.1em;
+    padding: 1px 5px; border: 1px solid var(--trump-border);
+    color: var(--trump); background: var(--trump-dim); flex-shrink: 0;
+  }
+
+  /* ── Trump Panel ── */
+  .trump-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 0 10px; border-bottom: 1px solid var(--trump-border);
+    margin-bottom: 14px;
+  }
+  .trump-title { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.2em; color: var(--trump); }
+  .trump-line { flex: 1; height: 1px; background: var(--trump-border); }
+
+  /* Sentiment meter */
+  .sentiment-meter {
+    background: var(--surface); border: 1px solid var(--trump-border);
+    padding: 14px; margin-bottom: 16px;
+  }
+  .meter-labels {
+    display: flex; justify-content: space-between;
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.15em;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .meter-bar { height: 4px; background: rgba(201,168,76,0.1); position: relative; overflow: hidden; }
+  .meter-fill {
+    height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--trump));
+    transition: width 0.8s ease;
+  }
+  .meter-val {
+    font-family: 'Cinzel', serif; font-size: 11px; color: var(--trump);
+    text-align: center; margin-top: 8px; letter-spacing: 0.1em;
+  }
+
+  .trump-item {
+    padding: 10px 0; border-bottom: 1px solid rgba(200,98,42,0.1);
+    opacity: 0; animation: fadeUp 0.35s forwards;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .trump-item:hover { background: var(--trump-dim); margin: 0 -8px; padding: 10px 8px; }
+  .trump-item-title { font-size: 13px; line-height: 1.45; color: var(--text); }
+  .trump-item-meta { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 3px; }
+  .trump-stocks { display: flex; gap: 3px; margin-top: 4px; flex-wrap: wrap; }
+  .trump-stock-tag {
+    font-family: 'Cinzel', serif; font-size: 8px; padding: 1px 5px;
+    border: 1px solid var(--trump-border); color: var(--trump);
+  }
+
+  /* ── Side panel ── */
+  .side-panel { display: flex; flex-direction: column; gap: 18px; }
+  .side-card { background: var(--surface); border: 1px solid var(--border); padding: 18px; }
+  .side-card-title {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.25em;
+    color: var(--text-dim); text-transform: uppercase;
+    margin-bottom: 12px; padding-bottom: 9px; border-bottom: 1px solid var(--border);
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-bottom: 1px solid rgba(201,168,76,0.06); font-size: 13px;
+  }
+  .stat-label { color: var(--text-dim); font-style: italic; }
+  .stat-value { color: var(--gold); font-family: 'Cinzel', serif; font-size: 15px; }
+  .stat-value.trump-val { color: var(--trump); }
+
+  .zerozero-prompt {
+    background: var(--bg3); border: 1px solid var(--border);
+    padding: 12px; font-size: 13px; font-style: italic;
+    color: var(--text-dim); line-height: 1.7;
+    cursor: pointer; transition: border-color 0.3s; user-select: all;
+    white-space: pre-wrap;
+  }
+  .zerozero-prompt:hover { border-color: var(--gold-dim); color: var(--text); }
+  .copy-hint { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 5px; font-style: italic; }
+
+  .auto-tag {
+    font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.15em;
+    padding: 2px 7px; background: var(--fj-glow); border: 1px solid var(--fj-border);
+    color: var(--fj-blue); margin-left: 6px; vertical-align: middle;
+  }
+
+  /* ── Log / footer ── */
+  .log {
+    padding: 10px 0; font-size: 12px; color: var(--text-dim);
+    font-style: italic; border-top: 1px solid var(--border); min-height: 36px;
+  }
+  .ornament {
+    text-align: center; font-family: 'Cinzel', serif; color: var(--gold-dim);
+    font-size: 12px; letter-spacing: 0.5em; padding: 8px 0;
+  }
+
+  /* ── Empty / loading states ── */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 0; gap: 14px; color: var(--text-dim);
+  }
+  .empty-glyph { font-family: 'Cinzel', serif; font-size: 40px; color: var(--gold-dim); opacity: 0.4; }
+  .empty-text { font-style: italic; font-size: 14px; }
+  .loading-text { font-style: italic; color: var(--text-dim); font-size: 13px; padding: 30px 0; text-align: center; }
+  .loading-text::after { content: '...'; animation: ld 1.5s infinite; }
+  @keyframes ld { 0%{content:'.'}33%{content:'..'}66%{content:'...'} }
+
+  /* ── Score badges inline ── */
+  .score-badge {
+    font-family: 'Cinzel', serif; font-size: 9px; padding: 1px 5px;
+    border: 1px solid; letter-spacing: 0.1em; vertical-align: middle; margin-right: 4px;
+  }
+  .score-high { border-color: rgba(204,68,68,0.4); color: #C44; }
+  .score-med { border-color: rgba(201,168,76,0.4); color: var(--gold); }
+  .score-low { border-color: rgba(138,125,90,0.3); color: var(--text-dim); }
+
+  /* scrollable feed */
+  .fj-feed-wrap { max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+  .fj-feed-wrap::-webkit-scrollbar { width: 2px; }
+  .fj-feed-wrap::-webkit-scrollbar-thumb { background: var(--gold-dim); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-main">ZERO · 零零</div>
+      <div class="logo-sub">每日信号台 · Daily Signal Console</div>
+    </div>
+    <div class="header-right">
+      <div class="fj-badge" id="fjBadge">FinancialJuice ●</div>
+      <div class="header-date" id="headerDate"></div>
+    </div>
+  </header>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn primary" onclick="runFetch()">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      抓取新闻
+    </button>
+    <button class="btn" onclick="saveMajor()" id="majorBtn">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+      存重大新闻
+    </button>
+    <button class="btn fj-btn" onclick="loadFJ(true)">
+      <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/></svg>
+      FJ 实时快讯
+    </button>
+    <button class="btn" onclick="loadNews()">
+      <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      刷新
+    </button>
+    <div class="status-bar">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">就绪</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('signals')">今日信号</div>
+    <div class="tab" onclick="switchTab('fj')">
+      FinancialJuice 实时
+      <span class="auto-tag" id="fjCount">—</span>
+    </div>
+    <div class="tab trump-tab" onclick="switchTab('trump')">🇺🇸 川普动态</div>
+    <div class="tab" onclick="switchTab('major')" id="majorTab">📌 重大必读 <span id="majorCount" style="font-size:9px;opacity:.7"></span></div>
+  </div>
+
+  <!-- Tab: 今日信号 -->
+  <div class="tab-panel active" id="panel-signals">
+    <div class="main">
+      <div class="news-panel">
+        <div class="panel-title">今日信号 · Today's Signals</div>
+        <div id="newsContent">
+          <div class="empty-state">
+            <div class="empty-glyph">◈</div>
+            <div class="empty-text">点击「抓取新闻」开始</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="side-card">
+          <div class="side-card-title">统计 · Stats</div>
+          <div class="stat-row"><span class="stat-label">今日条数</span><span class="stat-value" id="statTotal">—</span></div>
+          <div class="stat-row"><span class="stat-label">天轨</span><span class="stat-value" id="statHeaven">—</span></div>
+          <div class="stat-row"><span class="stat-label">地轨</span><span class="stat-value" id="statEarth">—</span></div>
+          <div class="stat-row"><span class="stat-label">人轨</span><span class="stat-value" id="statHuman">—</span></div>
+          <div class="stat-row"><span class="stat-label">川普相关</span><span class="stat-value trump-val" id="statTrump">—</span></div>
+          <div class="stat-row"><span class="stat-label">FJ快讯</span><span class="stat-value" style="color:var(--fj-blue)" id="statFJ">—</span></div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card-title">喂给零零 · Feed to Zero</div>
+          <div class="zerozero-prompt" id="zeroPrompt" onclick="copyPrompt()" title="点击复制">
+            今天有几条重要信号，结合当前三轨状态告诉我你的判断：
+          </div>
+          <div class="copy-hint">点击复制 → 粘贴给零零</div>
+        </div>
+
+        <div class="side-card" id="trumpSummaryCard" style="display:none">
+          <div class="side-card-title" style="color:var(--trump)">川普今日 · Trump Today</div>
+          <div class="sentiment-meter">
+            <div class="meter-labels"><span>🕊 鸽派</span><span>🦅 鹰派</span></div>
+            <div class="meter-bar"><div class="meter-fill" id="meterFill" style="width:50%"></div></div>
+            <div class="meter-val" id="meterVal">加载中...</div>
+          </div>
+          <div class="zerozero-prompt" id="trumpPrompt" onclick="copyTrumpPrompt()" style="border-color:var(--trump-border)">
+            川普今日动态...
+          </div>
+          <div class="copy-hint">点击复制川普摘要</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: FinancialJuice -->
+  <div class="tab-panel" id="panel-fj">
+    <div class="main">
+      <div class="news-panel">
+        <div class="panel-title" style="color:var(--fj-blue)">
+          FinancialJuice 实时快讯 · Live Feed
+          <span style="font-style:italic;font-size:10px;margin-left:8px;color:var(--text-dim)">每2分钟自动刷新</span>
+        </div>
+        <div class="fj-feed-wrap">
+          <div class="fj-panel" id="fjContent">
+            <div class="loading-text">正在连接 FinancialJuice</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="side-card">
+          <div class="side-card-title" style="color:var(--fj-blue)">FJ 统计</div>
+          <div class="stat-row"><span class="stat-label">总条数</span><span class="stat-value" style="color:var(--fj-blue)" id="fjTotal">—</span></div>
+          <div class="stat-row"><span class="stat-label">评分 ≥8</span><span class="stat-value" id="fjHigh">—</span></div>
+          <div class="stat-row"><span class="stat-label">川普相关</span><span class="stat-value trump-val" id="fjTrumpCount">—</span></div>
+          <div class="stat-row"><span class="stat-label">最后更新</span><span style="color:var(--text-dim);font-size:12px;font-style:italic" id="fjLastUpdate">—</span></div>
+        </div>
+        <div class="side-card">
+          <div class="side-card-title">高分新闻 · Hot</div>
+          <div id="fjHotList" style="font-size:13px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: 重大新闻必读 -->
+  <div class="tab-panel" id="panel-major">
+    <div class="main">
+      <div class="news-panel">
+        <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📌 重大新闻必读 · Score ≥ 8</span>
+          <button class="btn" onclick="saveMajor()" style="padding:5px 14px;font-size:10px">💾 存入 Obsidian</button>
+        </div>
+        <div id="majorContent">
+          <div class="empty-state"><div class="empty-glyph">◈</div><div class="empty-text">先点「FJ 实时快讯」加载新闻</div></div>
+        </div>
+      </div>
+      <div class="side-panel">
+        <div class="side-card">
+          <div class="side-card-title">重大新闻统计</div>
+          <div class="stat-row"><span class="stat-label">评分≥8条数</span><span class="stat-value" id="majorTotal">—</span></div>
+          <div class="stat-row"><span class="stat-label">川普相关</span><span class="stat-value trump-val" id="majorTrump">—</span></div>
+          <div class="stat-row"><span class="stat-label">最后保存</span><span style="color:var(--text-dim);font-size:11px;font-style:italic" id="majorSaved">—</span></div>
+        </div>
+        <div class="side-card">
+          <div class="side-card-title">喂给零零</div>
+          <div class="zerozero-prompt" id="majorPrompt" onclick="copyMajorPrompt()">加载后自动生成...</div>
+          <div class="copy-hint">点击复制</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Trump -->
+  <div class="tab-panel" id="panel-trump">
+    <div class="main">
+      <div class="news-panel">
+        <div class="trump-header">
+          <span class="trump-title">🇺🇸 川普动态专区</span>
+          <div class="trump-line"></div>
+        </div>
+        <div class="sentiment-meter" style="margin-bottom:20px">
+          <div class="meter-labels"><span>🕊 鸽派</span><span>今日市场情绪</span><span>🦅 鹰派</span></div>
+          <div class="meter-bar"><div class="meter-fill" id="trumpMeterFill" style="width:50%"></div></div>
+          <div class="meter-val" id="trumpMeterVal">加载中...</div>
+        </div>
+        <div class="panel-title">川普言论 & 政策动态</div>
+        <div id="trumpContent">
+          <div class="empty-state">
+            <div class="empty-glyph">◈</div>
+            <div class="empty-text">点击「FJ 实时快讯」加载数据</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-panel">
+        <div class="side-card">
+          <div class="side-card-title" style="color:var(--trump)">川普统计</div>
+          <div class="stat-row"><span class="stat-label">今日条数</span><span class="stat-value trump-val" id="trumpTotal">—</span></div>
+          <div class="stat-row"><span class="stat-label">鹰派指数</span><span class="stat-value trump-val" id="trumpHawk">—</span></div>
+          <div class="stat-row"><span class="stat-label">涉及标的</span><span class="stat-value" id="trumpStocks">—</span></div>
+        </div>
+
+        <div class="side-card">
+          <div class="side-card-title" style="color:var(--trump)">零零分析 · 川普影响</div>
+          <div class="zerozero-prompt" id="trumpZeroPrompt" onclick="copyTrumpZero()" style="border-color:var(--trump-border)">
+            加载川普新闻后自动生成分析提示...
+          </div>
+          <div class="copy-hint">点击复制 → 发给零零</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ornament">· · ·</div>
+  <div class="log" id="logArea"></div>
+</div>
+
+<script>
+const TRACK_MAP = { "投资人动向":"human","科技突破":"heaven","宏观拐点":"heaven" };
+const TRACK_ZH  = { "heaven":"天轨","earth":"地轨","human":"人轨" };
+
+// Date
+document.getElementById("headerDate").textContent =
+  new Date().toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+
+// ── Tabs ────────────────────────────────────────────────
+let activeTab = 'signals';
+function switchTab(name) {
+  activeTab = name;
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active', ['signals','fj','trump','major'][i]===name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  if (name === 'fj' || name === 'trump' || name === 'major') loadFJ();
+  if (name === 'major') renderMajor();
+}
+
+// ── Status / Log ─────────────────────────────────────────
+function setStatus(text, active=false, color='') {
+  document.getElementById("statusText").textContent = text;
+  const dot = document.getElementById("statusDot");
+  dot.className = "dot" + (active ? " active" : "");
+  if (color) dot.style.background = color;
+}
+function log(msg) {
+  const el = document.getElementById("logArea");
+  el.textContent = `${new Date().toLocaleTimeString("zh-CN")}  ${msg}`;
+}
+
+// ── Google News ──────────────────────────────────────────
+async function runFetch() {
+  setStatus("抓取中...", true);
+  log("正在连接信源...");
+  try {
+    const res = await fetch("/api/fetch");
+    const data = await res.json();
+    if (data.ok) {
+      setStatus("抓取完成");
+      log("信源抓取完成，正在加载...");
+      await loadNews();
+    } else {
+      setStatus("抓取失败");
+      log("错误：" + data.output.slice(0, 100));
+    }
+  } catch(e) {
+    setStatus("连接失败");
+    log("无法连接服务器：" + e.message);
+  }
+}
+
+async function loadNews() {
+  try {
+    const res = await fetch("/api/news");
+    const news = await res.json();
+    renderNews(news);
+    // also load trump
+    loadTrumpData();
+  } catch(e) { log("加载失败：" + e.message); }
+}
+
+function renderNews(news) {
+  if (!news.length) {
+    document.getElementById("newsContent").innerHTML = `
+      <div class="empty-state"><div class="empty-glyph">◈</div><div class="empty-text">暂无新闻，点击「抓取新闻」</div></div>`;
+    return;
+  }
+  const trackCount = {heaven:0,earth:0,human:0};
+  let trumpCount = 0;
+  news.forEach(n => {
+    const t = TRACK_MAP[n.category] ?? "heaven";
+    trackCount[t]++;
+    if (n.title?.toLowerCase().match(/trump|tariff|trade war|executive order/)) trumpCount++;
+  });
+  document.getElementById("statTotal").textContent = news.length;
+  document.getElementById("statHeaven").textContent = trackCount.heaven;
+  document.getElementById("statEarth").textContent = trackCount.earth;
+  document.getElementById("statHuman").textContent = trackCount.human;
+  document.getElementById("statTrump").textContent = trumpCount || "—";
+
+  const grouped = {};
+  news.forEach(n => {
+    if (!grouped[n.category]) grouped[n.category] = [];
+    grouped[n.category].push(n);
+  });
+
+  const topNews = news.slice(0,5).map(n=>
+    `• ${(n.titleZh||n.title).slice(0,60)}${n.stocks?.length?`（${n.stocks.join("/")}）`:""}`
+  ).join("\n");
+  document.getElementById("zeroPrompt").textContent =
+    `今天有几条重要信号，结合当前三轨状态告诉我你的判断：\n\n${topNews}`;
+
+  let html = ""; let delay = 0;
+  for (const [cat, items] of Object.entries(grouped)) {
+    const track = TRACK_MAP[cat] ?? "heaven";
+    html += `<div class="category-section" style="animation-delay:${delay}ms">
+      <div class="category-header">
+        <span class="category-name">${cat}</span>
+        <span class="category-track">${TRACK_ZH[track]}</span>
+        <div class="category-line"></div>
+      </div>
+      <table class="news-table">
+        <thead><tr><th>核心内容</th><th>相关股票</th><th>来源</th></tr></thead>
+        <tbody>${items.map(item=>`
+          <tr>
+            <td class="news-title">
+              <a href="${item.link}" target="_blank">${(item.titleZh||item.title).slice(0,80)}</a>
+              ${item.titleZh&&item.titleZh!==item.title?`<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">${item.title.slice(0,60)}</div>`:""}
+            </td>
+            <td><div class="stock-tags">${item.stocks?.length?item.stocks.map(s=>`<span class="stock-tag">${s}</span>`).join(""):`<span class="stock-tag none">—</span>`}</div></td>
+            <td><span class="source-label">${item.source}</span></td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+    delay += 80;
+  }
+  document.getElementById("newsContent").innerHTML = html;
+  setStatus(`已加载 ${news.length} 条`);
+  log(`显示 ${news.length} 条新闻`);
+}
+
+// ── FinancialJuice ───────────────────────────────────────
+let fjData = [];
+let fjLoaded = false;
+
+async function loadFJ(force=false) {
+  if (fjLoaded && !force) { renderFJ(); return; }
+  document.getElementById("fjContent").innerHTML = '<div class="loading-text">连接 FinancialJuice</div>';
+  document.getElementById("fjBadge").textContent = "FJ 连接中...";
+  setStatus("拉取FJ快讯...", true, 'var(--fj-blue)');
+  try {
+    const res = await fetch("/api/fj" + (force ? "?force=1" : ""));
+    fjData = await res.json();
+    fjLoaded = true;
+    renderFJ();
+    document.getElementById("fjBadge").textContent = `FinancialJuice ● ${fjData.length}条`;
+    document.getElementById("statFJ").textContent = fjData.length;
+    document.getElementById("fjCount").textContent = fjData.length;
+    document.getElementById("fjLastUpdate").textContent = new Date().toLocaleTimeString("zh-CN");
+    setStatus(`FJ ${fjData.length} 条`);
+    log(`FinancialJuice 加载 ${fjData.length} 条快讯`);
+    // Also update trump
+    renderTrump(fjData.filter(n=>n.trump));
+  } catch(e) {
+    document.getElementById("fjContent").innerHTML = `<div class="empty-state"><div class="empty-text">连接失败: ${e.message}</div></div>`;
+    document.getElementById("fjBadge").textContent = "FJ 离线";
+    setStatus("FJ连接失败");
+    log("FJ 拉取失败：" + e.message);
+  }
+}
+
+function renderFJ() {
+  const el = document.getElementById("fjContent");
+  const high = fjData.filter(n=>n.score>=8).length;
+  const trumpCount = fjData.filter(n=>n.trump).length;
+  document.getElementById("fjTotal").textContent = fjData.length;
+  document.getElementById("fjHigh").textContent = high;
+  document.getElementById("fjTrumpCount").textContent = trumpCount;
+
+  // Hot list
+  const hot = fjData.filter(n=>n.score>=8).slice(0,5);
+  document.getElementById("fjHotList").innerHTML = hot.map(n=>`
+    <div style="padding:6px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-size:12px;line-height:1.4;color:var(--text-dim)">
+      <span class="score-badge ${n.score>=9?'score-high':'score-med'}">${n.score}</span>
+      ${n.title.slice(0,55)}
+    </div>`).join("") || '<div style="color:var(--text-dim);font-size:12px;font-style:italic">暂无高分新闻</div>';
+
+  el.innerHTML = fjData.map((n,i)=>{
+    const sc = n.score>=9?'critical':n.score>=7?'major':'normal';
+    const t = new Date(n.pub).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}) || n.pub?.slice(0,16) || "";
+    return `<div class="fj-item" style="animation-delay:${Math.min(i*15,500)}ms" onclick="window.open('${n.link}','_blank')">
+      <div class="fj-score ${sc}">${n.score}</div>
+      <div class="fj-content">
+        <div class="fj-title">${n.titleZh || n.title}</div>
+        ${n.titleZh && n.titleZh !== n.title ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">${n.title.slice(0,70)}</div>` : ""}
+        <div class="fj-meta">
+          <span>🕐 ${t}</span>
+          ${n.stocks?.length?`<span>${n.stocks.slice(0,3).join(" / ")}</span>`:""}
+        </div>
+      </div>
+      ${n.trump?'<div class="fj-trump-tag">TRUMP</div>':""}
+    </div>`;
+  }).join("") || '<div class="loading-text">暂无数据</div>';
+}
+
+// ── Trump ────────────────────────────────────────────────
+async function loadTrumpData() {
+  try {
+    const res = await fetch("/api/trump");
+    const data = await res.json();
+    renderTrump(data.items, data.hawkPct, data.sentiment);
+    document.getElementById("statTrump").textContent = data.total || "—";
+  } catch(e) { /* silent */ }
+}
+
+function renderTrump(items, hawkPct, sentiment) {
+  if (!items) return;
+  if (hawkPct !== undefined) {
+    document.getElementById("trumpMeterFill").style.width = hawkPct + "%";
+    document.getElementById("meterFill").style.width = hawkPct + "%";
+    document.getElementById("trumpMeterVal").textContent = sentiment || "—";
+    document.getElementById("meterVal").textContent = sentiment || "—";
+    document.getElementById("trumpHawk").textContent = hawkPct + "%";
+    document.getElementById("trumpTotal").textContent = items.length;
+  }
+
+  const allStocks = [...new Set(items.flatMap(n=>n.stocks||[]))];
+  document.getElementById("trumpStocks").textContent = allStocks.slice(0,5).join(" ") || "—";
+
+  // Show summary card
+  if (items.length > 0) {
+    document.getElementById("trumpSummaryCard").style.display = "block";
+    const prompt = `川普今日动态（${items.length}条）：\n` + items.slice(0,5).map(n=>`• ${n.title.slice(0,60)}`).join("\n") +
+      `\n\n请分析这些言论对以下市场的影响：\n- BTC/加密货币\n- 美股（SPY/QQQ/科技股）\n- 外汇（USD/JPY EUR/USD）\n- 原油（WTI）`;
+    document.getElementById("trumpPrompt").textContent = prompt;
+    document.getElementById("trumpZeroPrompt").textContent = prompt;
+  }
+
+  const el = document.getElementById("trumpContent");
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-glyph">◈</div><div class="empty-text">暂无川普相关新闻</div></div>`;
+    return;
+  }
+  el.innerHTML = items.map((n,i)=>{
+    const t = new Date(n.pub).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}) || "";
+    return `<div class="trump-item" style="animation-delay:${i*40}ms" onclick="window.open('${n.link}','_blank')">
+      <div class="trump-item-title">${n.titleZh || n.title}</div>
+      ${n.titleZh && n.titleZh !== n.title ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">${n.title.slice(0,65)}</div>` : ""}
+      <div class="trump-item-meta">🕐 ${t}
+        ${n.stocks?.length?`&nbsp;·&nbsp;${n.stocks.map(s=>`<span class="trump-stock-tag">${s}</span>`).join(" ")}`:""}</div>
+    </div>`;
+  }).join("");
+}
+
+// ── Copy ─────────────────────────────────────────────────
+function copyPrompt() {
+  navigator.clipboard.writeText(document.getElementById("zeroPrompt").textContent)
+    .then(()=>log("已复制信号摘要到剪贴板"));
+}
+function copyTrumpPrompt() {
+  navigator.clipboard.writeText(document.getElementById("trumpPrompt").textContent)
+    .then(()=>log("已复制川普摘要到剪贴板"));
+}
+function copyTrumpZero() {
+  navigator.clipboard.writeText(document.getElementById("trumpZeroPrompt").textContent)
+    .then(()=>log("已复制川普分析提示到剪贴板"));
+}
+
+// ── Auto-refresh FJ every 2 minutes ─────────────────────
+
+
+// ── Init ─────────────────────────────────────────────────
+loadNews();
+loadFJ();
+</script>
+</body>
+</html>

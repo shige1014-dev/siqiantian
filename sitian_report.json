@@ -1,0 +1,59 @@
+{
+  "timestamp": "2026-04-14T10:29:35.521Z",
+  "reporter": "诗歌",
+  "mode": "ROUTINE",
+  "alert_level": "ROUTINE",
+  "heaven_track": {
+    "VIX": {
+      "value": 18.34,
+      "delta_1d": -0.78,
+      "status": "normal"
+    },
+    "TNX": {
+      "value": 4.297,
+      "delta_1d": -0.02,
+      "status": "normal"
+    },
+    "DXY": {
+      "value": 98.094,
+      "delta_1d": -0.276,
+      "status": "normal"
+    }
+  },
+  "earth_track": {
+    "FEDFUNDS": {
+      "label": "联邦基金利率",
+      "value": 3.64,
+      "delta": 0,
+      "status": "normal"
+    },
+    "UNRATE": {
+      "label": "失业率",
+      "value": 4.3,
+      "delta": -0.1,
+      "status": "normal"
+    },
+    "M2SL": {
+      "label": "M2货币供应",
+      "value": 22667.3,
+      "delta": 198.2,
+      "status": "normal"
+    },
+    "CPIAUCSL": {
+      "label": "CPI",
+      "value": 330.293,
+      "delta": 2.833,
+      "status": "normal"
+    }
+  },
+  "human_track": {
+    "fear_greed": {
+      "value": 21,
+      "label": "Extreme Fear",
+      "status": "normal"
+    }
+  },
+  "alerts": [],
+  "summary": "三轨常态，无异动。",
+  "action_required": false
+}
