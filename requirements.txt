@@ -1,0 +1,3 @@
+yfinance
+fredapi
+requests
