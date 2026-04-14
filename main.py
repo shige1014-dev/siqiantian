@@ -85,3 +85,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def fetch_news_sentiment():
+    """接入新闻情绪"""
+    try:
+        import news_sentiment
+        return news_sentiment.analyze_market_sentiment()
+    except Exception as e:
+        return {"error": str(e), "label": "neutral", "sentiment_score": 0}
